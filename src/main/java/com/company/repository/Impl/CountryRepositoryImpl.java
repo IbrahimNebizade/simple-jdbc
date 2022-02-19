@@ -20,7 +20,6 @@ public class CountryRepositoryImpl implements CountryRepositoryInter {
         String countryId = rs.getString("country_id");
         String countryName = rs.getString("country_name");
         long regionId = rs.getLong("region_id");
-
         return new Country(countryId, countryName, new Region(regionId, null));
     }
 
