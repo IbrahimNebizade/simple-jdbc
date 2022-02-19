@@ -23,6 +23,7 @@ public class CountryRepositoryImpl implements CountryRepositoryInter {
         return new Country(countryId, countryName, new Region(regionId, null));
     }
 
+
     @Override
     public Optional<Country> selectById(String countryId) throws SQLException {
 
