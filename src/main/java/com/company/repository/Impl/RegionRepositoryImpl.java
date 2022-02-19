@@ -73,15 +73,12 @@ public class RegionRepositoryImpl implements RegionRepositoryInter {
     @Override
     public Optional<Region> findById(long id) {
         var sql = """
-                select * from regions r where region_id = ?;
+                select * from regions  where region_id = ?;
                 """;
         Region region = null;
-        try (
-                var conn = DbConfig.instance();
-                var stmt = conn.prepareStatement(sql)
-        ) {
+        try ( var conn = DbConfig.instance();
+              var stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
-
             try (var rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     region = getRegion(rs);

@@ -29,13 +29,16 @@ public class LocationRepositoryImpl implements LocationRepositoryInter {
                 select *
                 from locations where postal_code=?;
                 """;
-        try (var con = DbConfig.instance()) {
-            var stmt = con.prepareStatement(sql);
+        try (var con = DbConfig.instance();
+            var stmt = con.prepareStatement(sql)) {
             stmt.setString(1, postalCode);
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                loc = getLocation(rs);
+            try(var rs = stmt.getResultSet()) {
+                while (rs.next()) {
+                    loc = getLocation(rs);
+                }
+            }catch (Exception ex){
+                ex.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -48,12 +51,15 @@ public class LocationRepositoryImpl implements LocationRepositoryInter {
         List<Location> locations = new ArrayList<>();
         var sql = """
                 """;
-        try (var con = DbConfig.instance()) {
-            var stmt = con.prepareStatement(sql);
+        try (var con = DbConfig.instance();
+            var stmt = con.prepareStatement(sql)) {
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                locations.add(getLocation(rs));
+            try(var rs = stmt.getResultSet()) {
+                while (rs.next()) {
+                    locations.add(getLocation(rs));
+                }
+            }catch (Exception ex){
+                ex.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,8 +74,7 @@ public class LocationRepositoryImpl implements LocationRepositoryInter {
                 update locations set street_address=? where postal_code=?;
                 """;
         var con = DbConfig.instance();
-        try {
-            var stmt = con.prepareStatement(sql);
+        try (var stmt = con.prepareStatement(sql)){
             stmt.setString(1, streetAdress);
             stmt.setString(2, postalCode);
             var effected = stmt.executeUpdate();
@@ -101,8 +106,7 @@ public class LocationRepositoryImpl implements LocationRepositoryInter {
                 delete from locations where location_id=?;
                 """;
         var con = DbConfig.instance();
-        try {
-            var stmt = con.prepareStatement(sql);
+        try ( var stmt = con.prepareStatement(sql)){
             stmt.setLong(1, id);
             var effected = stmt.executeUpdate();
             if (effected > 0) {

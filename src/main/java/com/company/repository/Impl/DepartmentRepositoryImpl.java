@@ -29,13 +29,16 @@ public class DepartmentRepositoryImpl implements DepartmentRepositoryInter {
                 from departments where department_id=?;
                 """;
         Department department = null;
-        try (var conn = DbConfig.instance()) {
-            var stmt = conn.prepareStatement(sql);
+        try (var conn = DbConfig.instance();
+             var stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                department = getDepartment(rs);
+            try (var rs = stmt.getResultSet()) {
+                while (rs.next()) {
+                    department = getDepartment(rs);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -50,8 +53,7 @@ public class DepartmentRepositoryImpl implements DepartmentRepositoryInter {
                 update departments set department_name=? where department_id=?;
                 """;
         var con = DbConfig.instance();
-        try {
-            var stmt = con.prepareStatement(sql);
+        try (var stmt = con.prepareStatement(sql)) {
             stmt.setString(1, name);
             stmt.setLong(2, id);
             var effected = stmt.executeUpdate();
@@ -82,8 +84,7 @@ public class DepartmentRepositoryImpl implements DepartmentRepositoryInter {
                 delete from departments where department_id=?;
                 """;
         var con = DbConfig.instance();
-        try {
-            var stmt = con.prepareStatement(sql);
+        try (var stmt = con.prepareStatement(sql)) {
             stmt.setLong(1, id);
             var effected = stmt.executeUpdate();
             if (effected > 0) {
@@ -93,13 +94,13 @@ public class DepartmentRepositoryImpl implements DepartmentRepositoryInter {
         } catch (Exception e) {
             try {
                 con.rollback();
-            }catch (Exception exception){
+            } catch (Exception exception) {
                 exception.printStackTrace();
             }
-        }finally {
+        } finally {
             try {
                 con.close();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -112,12 +113,15 @@ public class DepartmentRepositoryImpl implements DepartmentRepositoryInter {
         var sql = """
                 select * from departments ;
                 """;
-        try (var con = DbConfig.instance()) {
-            var stmt = con.prepareStatement(sql);
+        try (var con = DbConfig.instance();
+             var stmt = con.prepareStatement(sql)) {
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                departments.add(getDepartment(rs));
+            try (var rs = stmt.getResultSet()) {
+                while (rs.next()) {
+                    departments.add(getDepartment(rs));
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -26,13 +26,17 @@ public class DependentRepositoryImpl implements DependentRepositoryInter {
         List<Dependent> list = new ArrayList<>();
         var sql = """
                 """;
-        try (var con = DbConfig.instance()) {
-            var stmt = con.prepareStatement(sql);
+        try (var con = DbConfig.instance();
+            var stmt = con.prepareStatement(sql)) {
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                list.add(getDependent(rs));
+            try(var rs = stmt.getResultSet()) {
+                while (rs.next()) {
+                    list.add(getDependent(rs));
+                }
+            }catch (Exception ex){
+                ex.printStackTrace();
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -46,14 +50,18 @@ public class DependentRepositoryImpl implements DependentRepositoryInter {
                 select *
                 from dependents where first_name=?;
                 """;
-        try (var con = DbConfig.instance()) {
-            var stmt = con.prepareStatement(sql);
+        try (var con = DbConfig.instance();
+            var stmt = con.prepareStatement(sql)) {
             stmt.setString(1, name);
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                dependent = getDependent(rs);
-            }
+           try( var rs = stmt.getResultSet()) {
+               while (rs.next()) {
+                   dependent = getDependent(rs);
+               }
+           }catch (Exception ex){
+               ex.printStackTrace();
+           }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -67,8 +75,7 @@ public class DependentRepositoryImpl implements DependentRepositoryInter {
                 delete from dependents where first_name=?;
                 """;
         var con = DbConfig.instance();
-        try {
-            var stmt = con.prepareStatement(sql);
+        try (var stmt = con.prepareStatement(sql)){
             stmt.setString(1, name);
             var effected = stmt.executeUpdate();
             if (effected > 0) {

@@ -38,14 +38,17 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryInter {
                 select *
                 from employees where employee_id=?;
                 """;
-        try (var con = DbConfig.instance()) {
-            var stmt = con.prepareStatement(sql);
+        try (var con = DbConfig.instance();
+            var stmt = con.prepareStatement(sql)) {
             stmt.setLong(1, id);
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                employee = getEmployee(rs);
-            }
+           try( var rs = stmt.getResultSet()) {
+               while (rs.next()) {
+                   employee = getEmployee(rs);
+               }
+           }catch (Exception ex){
+               ex.printStackTrace();
+           }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,8 +62,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryInter {
                 update employees set email=? where employee_id=?;
                 """;
         var con = DbConfig.instance();
-        try {
-            var stmt = con.prepareStatement(sql);
+        try ( var stmt = con.prepareStatement(sql)){
             stmt.setString(1, email);
             stmt.setLong(2, id);
             var effected = stmt.executeUpdate();
@@ -91,8 +93,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryInter {
                 delete from employees where employee_id=?;
                 """;
         var con = DbConfig.instance();
-        try {
-            var stmt = con.prepareStatement(sql);
+        try (var stmt = con.prepareStatement(sql)){
             stmt.setLong(1, id);
             var effected = stmt.executeUpdate();
             if (effected > 0) {
@@ -125,9 +126,12 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryInter {
         try (var con = DbConfig.instance()) {
             var stmt = con.prepareStatement(sql);
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                emp.add(getEmployee(rs));
+            try(var rs = stmt.getResultSet()) {
+                while (rs.next()) {
+                    emp.add(getEmployee(rs));
+                }
+            }catch (Exception ex){
+                ex.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();

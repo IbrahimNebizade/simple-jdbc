@@ -26,12 +26,15 @@ public class JobRepositoryImpl implements JobRepositoryInter {
                 select *
                 from jobs;
                 """;
-        try (var con = DbConfig.instance()) {
-            var stmt = con.prepareStatement(sql);
+        try (var con = DbConfig.instance();
+            var stmt = con.prepareStatement(sql)) {
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                jobs.add(getJob(rs));
+            try(var rs = stmt.getResultSet()) {
+                while (rs.next()) {
+                    jobs.add(getJob(rs));
+                }
+            }catch (Exception ex){
+                ex.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -45,14 +48,18 @@ public class JobRepositoryImpl implements JobRepositoryInter {
                 select * from jobs where job_title=?;
                 """;
         Job job = null;
-        try (var con = DbConfig.instance()) {
-            var stmt = con.prepareStatement(sql);
+        try (var con = DbConfig.instance();
+            var stmt = con.prepareStatement(sql)) {
             stmt.setString(1, title);
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                job = getJob(rs);
+            try(var rs = stmt.getResultSet()) {
+                while (rs.next()) {
+                    job = getJob(rs);
+                }
+            }catch (Exception ex){
+                ex.printStackTrace();
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -66,8 +73,7 @@ public class JobRepositoryImpl implements JobRepositoryInter {
                 update jobs set min_salary=?,max_salary=? where job_title=?;
                 """;
         var con = DbConfig.instance();
-        try {
-            var stmt = con.prepareStatement(sql);
+        try (var stmt = con.prepareStatement(sql)){
             stmt.setBigDecimal(1, minSalary);
             stmt.setBigDecimal(2, maxSalary);
             stmt.setString(3, title);
@@ -99,8 +105,7 @@ public class JobRepositoryImpl implements JobRepositoryInter {
                 delete from jobs where job_id=?;
                 """;
         var con = DbConfig.instance();
-        try {
-            var stmt = con.prepareStatement(sql);
+        try(var stmt = con.prepareStatement(sql)){
             stmt.setLong(1, id);
             var effected = stmt.executeUpdate();
             if (effected > 0) {

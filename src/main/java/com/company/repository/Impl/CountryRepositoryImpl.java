@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 public class CountryRepositoryImpl implements CountryRepositoryInter {
 
     private static Country getCountry(ResultSet rs) throws SQLException {
-
         String countryId = rs.getString("country_id");
         String countryName = rs.getString("country_name");
         long regionId = rs.getLong("region_id");
@@ -26,20 +25,23 @@ public class CountryRepositoryImpl implements CountryRepositoryInter {
     }
 
     @Override
-    public Optional<Country> selectById(String countryId) {
+    public Optional<Country> selectById(String countryId) throws SQLException {
 
         Country country = null;
         var sql = """
                 select * from countries
                 where country_id=?;
                 """;
-        try (var con = DbConfig.instance()) {
-            var stmt = con.prepareStatement(sql);
+        try (var con = DbConfig.instance();
+             var stmt = con.prepareStatement(sql)) {
             stmt.setString(1, countryId);
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                country = getCountry(rs);
+            try (var rs = stmt.getResultSet()) {
+                while (rs.next()) {
+                    country = getCountry(rs);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,13 +90,16 @@ public class CountryRepositoryImpl implements CountryRepositoryInter {
                 select *
                 from countries;
                 """;
-        try (var con = DbConfig.instance()) {
-            var stmt = con.prepareStatement(sql);
+        try (var con = DbConfig.instance();
+            var stmt = con.prepareStatement(sql)) {
             stmt.execute();
-            var rs = stmt.getResultSet();
-            while (rs.next()) {
-                Country c = getCountry(rs);
-                cList.add(c);
+            try(var rs = stmt.getResultSet()) {
+                while (rs.next()) {
+                    Country c = getCountry(rs);
+                    cList.add(c);
+                }
+            }catch (Exception ex){
+                ex.printStackTrace();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,8 +114,7 @@ public class CountryRepositoryImpl implements CountryRepositoryInter {
                 """;
         boolean delete = false;
         var con = DbConfig.instance();
-        try {
-            var stmt = con.prepareStatement(sql);
+        try (var stmt = con.prepareStatement(sql)) {
             stmt.setString(1, id);
             var affected = stmt.executeUpdate();
             if (affected > 0) {
